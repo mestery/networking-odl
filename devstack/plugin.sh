@@ -115,7 +115,9 @@ function configure_opendaylight {
     # Add odl-ovsdb-openstack if it's not already there
     local ODLOVSDB=$(cat $ODL_DIR/$ODL_NAME/etc/org.apache.karaf.features.cfg | grep featuresBoot= | grep odl)
     if [ "$ODLOVSDB" == "" ]; then
-        sed -i '/^featuresBoot=/ s/$/,odl-ovsdb-openstack/' $ODL_DIR/$ODL_NAME/etc/org.apache.karaf.features.cfg
+        # NOTE: The addition of odl-neutron-service is a workaround for an ODL
+        # bug. We need to remove this once the ODL bug is resolved.
+        sed -i '/^featuresBoot=/ s/$/,odl-neutron-service,odl-ovsdb-openstack/' $ODL_DIR/$ODL_NAME/etc/org.apache.karaf.features.cfg
     fi
 
     # Move Tomcat to $ODL_PORT
@@ -223,6 +225,9 @@ function start_opendaylight {
     else
         JHOME=/usr/lib/jvm/java-1.7.0-openjdk
     fi
+
+    # Wipe out the data directory ... grumble grumble grumble
+    rm -rf $ODL_DIR/$ODL_NAME/data
 
     # The following variables are needed by the running karaf process.
     # See the "bin/setenv" file in the OpenDaylight distribution for
